@@ -1,0 +1,115 @@
+---
+title: "Inroductory Spatial Analysis in R"
+author: "Marc Weber"
+output: html_document
+---
+
+Basic data structures in R can represent spatial data. All we need is some vectors with location and attribute information.
+```{r}
+cities <- c('Ashland','Corvallis','Bend','Portland','Newport')
+longitude <- c(-122.699, -123.275, -121.313, -122.670, -124.054)
+latitude <- c(42.189, 44.57, 44.061, 45.523, 44.652)
+population <- c(20062,50297,61362,537557,9603)
+locs <- cbind(longitude, latitude)
+```
+
+Plot locations, with size (cex) proportional to precip
+```{r}
+plot(locs, cex=sqrt(population*.0002), pch=20, col='red', main='Population')
+text(locs, cities, pos=4)
+# add a legend
+breaks <- c(20000, 50000, 60000, 100000)
+legend("topright", legend=breaks, pch=20, pt.cex=1+breaks/20000, col='red', bg='gray')
+# Add a polygon to our map
+lon <- c(-123.5, -123.5, -122.5, -122.670, -123)
+lat <- c(43, 45.5, 44, 43, 43)
+x <- cbind(lon, lat)
+polygon(x, border='blue')
+lines(x, lwd=3, col='red')
+points(x, cex=2, pch=20)
+```
+
+Packages early on in R came at handling spatial data in their own way - maps package is great example - database of locational information that is quite handy.The maps package format was developed in S (R is implementation of S) - lines represented as a sequence of points separated by 'NA' values - think of as drawing with a pen, raising at NA, then lowering at a value.  Bad for associating with data since objects are only distinguished by separation with NA values.
+```{r}
+library(maps)
+map()
+map.text('county','oregon')
+map.axes()
+title(main="Oregon State")
+```
+
+The maptools package provides convenience function for making spatial objects from  map objects.
+```{r}
+library(maptools)
+counties <- map('county','oregon', plot=F, col='transparent',fill=TRUE)
+counties$names
+#strip out just the county names from items in the names vector of counties
+IDs <- sapply(strsplit(counties$names, ","), function(x) x[2])
+counties_sp <- map2SpatialPolygons(counties, IDs=IDs,
+                                         proj4string=CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
+summary(counties_sp)
+plot(counties_sp, col="grey", axes=TRUE)
+```
+
+Spatial classes provided in sp package have mostly standardized spatial data in R and provide a solid way to represent and work with spatial data in R.
+```{r}
+library(sp)
+getClass("Spatial") #the base spatial class in sp, has a number of subclasses used for spatial objects
+getClass("CRS") #a character class composed of a projection string in WKT format
+getClass("SpatialPoints") #examine the structure of a couple of the subclasses in class "spatial"
+getClass("SpatialLines")
+getClass("SpatialPolygons")
+getClass("SpatialPolygonsDataFrame")  
+getClass("SpatialGrid")
+```
+
+Construt a spatial object in R from a data frame with coordinate information - we'll use the built-in dataset 'quakes' with information on earthquakes off the coast of Fiji.  After creating spatial object, promote it to a spatial data frame object.
+```{r}
+library(sp)
+data(quakes)
+head(quakes)
+class(quakes)
+# Data frames consist of rows of observations on columns of values for variables of interest. Create the coordinate reference system to use
+llCRS <- CRS("+proj=longlat +datum=NAD83")
+# now stitch together the data frame coordinate fields and the  
+# projection string to createa SpatialPoints object
+quakes_sp <- SpatialPoints(quakes[, c('long', 'lat')], proj4string = llCRS)
+# Summary method gives a description of the spatial object in R. Summary works on pretty much all objects in R - for spatial data, gives us basic information about the projection, coordinates, and data for an sp object if it's a spatial data frame object.
+summary(quakes_sp)
+
+# We can use the generic plot function in R to produce a quick plot add axes as well:
+plot(quakes_sp, axes=TRUE, col='blue', cex=.5) # axes option puts box around region 
+#show state borders using maps package - very handy 
+map('world','Fiji',fill=FALSE, cex = 2,add=T)
+
+# we can use methods in sp library to extract certain information from objects
+bbox(quakes_sp)
+proj4string(quakes_sp)
+
+#now promote the SpatialPoints to a SpatialPointsDataFrame
+quakes_coords <- cbind(quakes$long, quakes$lat)
+quakes_sp_df <- SpatialPointsDataFrame(quakes_coords, quakes, proj4string=llCRS, match.ID=TRUE)
+summary(quakes_sp_df) #attributes folded back in
+str(quakes_sp_df, max.level=2)
+#now that we've associated data with the points, we can select and plot using the attributes of the data
+plot(quakes_sp_df[quakes_sp_df$mag>5.5,],add=TRUE,col="Red") #plot just higher magnitued quakes in red
+plot(quakes_sp_df[quakes_sp_df$depth > 500,],add=TRUE,col="Green") #plot just dpper quakes in green
+```
+Intro to raster data with raster package:
+```{r}
+library(raster)
+# create an empty raster
+r <- raster(ncol=10, nrow = 10, xmx=-116,xmn=-126,ymn=42,ymx=46)
+str(r, max.level=2)
+r
+r[] <- 1:ncell(r)
+r
+plot(r)
+
+# a raster stack is a raster with multiple raster layers
+r2 <- r * 50
+r3 <- sqrt(r * 5)
+s <- stack(r, r2, r3)
+s
+plot(s)
+```
