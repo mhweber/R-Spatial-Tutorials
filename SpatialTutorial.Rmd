@@ -39,7 +39,7 @@ title(main="Oregon State")
 ```
 
 The maptools package provides convenience function for making spatial objects from  map objects.
-```{r}
+```{r, message=FALSE}
 library(maptools)
 counties <- map('county','oregon', plot=F, col='transparent',fill=TRUE)
 counties$names
@@ -96,7 +96,7 @@ plot(quakes_sp_df[quakes_sp_df$mag>5.5,],add=TRUE,col="Red") #plot just higher m
 plot(quakes_sp_df[quakes_sp_df$depth > 500,],add=TRUE,col="Green") #plot just dpper quakes in green
 ```
 Intro to raster data with raster package:
-```{r}
+```{r, message=FALSE}
 library(raster)
 # create an empty raster
 r <- raster(ncol=10, nrow = 10, xmx=-116,xmn=-126,ymn=42,ymx=46)

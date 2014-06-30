@@ -62,35 +62,9 @@ library(maptools)
 
 ```
 ## Warning: package 'maptools' was built under R version 3.0.1
-```
-
-```
-## Loading required package: foreign
-```
-
-```
 ## Warning: package 'foreign' was built under R version 3.0.1
-```
-
-```
-## Loading required package: sp
-```
-
-```
 ## Warning: package 'sp' was built under R version 3.0.1
-```
-
-```
-## Loading required package: grid
-## Loading required package: lattice
-```
-
-```
 ## Warning: package 'lattice' was built under R version 3.0.3
-```
-
-```
-## Checking rgeos availability: TRUE
 ```
 
 ```r
