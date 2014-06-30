@@ -58,16 +58,6 @@ The maptools package provides convenience function for making spatial objects fr
 
 ```r
 library(maptools)
-```
-
-```
-## Warning: package 'maptools' was built under R version 3.0.1
-## Warning: package 'foreign' was built under R version 3.0.1
-## Warning: package 'sp' was built under R version 3.0.1
-## Warning: package 'lattice' was built under R version 3.0.3
-```
-
-```r
 counties <- map("county", "oregon", plot = F, col = "transparent", fill = TRUE)
 counties$names
 ```
@@ -383,13 +373,6 @@ Intro to raster data with raster package:
 
 ```r
 library(raster)
-```
-
-```
-## Warning: package 'raster' was built under R version 3.0.1
-```
-
-```r
 # create an empty raster
 r <- raster(ncol = 10, nrow = 10, xmx = -116, xmn = -126, ymn = 42, ymx = 46)
 str(r, max.level = 2)

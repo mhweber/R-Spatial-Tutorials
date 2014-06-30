@@ -225,15 +225,7 @@ title(main = &quot;Oregon State&quot;)
 <p>The maptools package provides convenience function for making spatial objects from  map objects.</p>
 
 <pre><code class="r">library(maptools)
-</code></pre>
-
-<pre><code>## Warning: package &#39;maptools&#39; was built under R version 3.0.1
-## Warning: package &#39;foreign&#39; was built under R version 3.0.1
-## Warning: package &#39;sp&#39; was built under R version 3.0.1
-## Warning: package &#39;lattice&#39; was built under R version 3.0.3
-</code></pre>
-
-<pre><code class="r">counties &lt;- map(&quot;county&quot;, &quot;oregon&quot;, plot = F, col = &quot;transparent&quot;, fill = TRUE)
+counties &lt;- map(&quot;county&quot;, &quot;oregon&quot;, plot = F, col = &quot;transparent&quot;, fill = TRUE)
 counties$names
 </code></pre>
 
@@ -512,12 +504,7 @@ plot(quakes_sp_df[quakes_sp_df$depth &gt; 500, ], add = TRUE, col = &quot;Green&
 <p>Intro to raster data with raster package:</p>
 
 <pre><code class="r">library(raster)
-</code></pre>
-
-<pre><code>## Warning: package &#39;raster&#39; was built under R version 3.0.1
-</code></pre>
-
-<pre><code class="r"># create an empty raster
+# create an empty raster
 r &lt;- raster(ncol = 10, nrow = 10, xmx = -116, xmn = -126, ymn = 42, ymx = 46)
 str(r, max.level = 2)
 </code></pre>
