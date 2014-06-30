@@ -1,10 +1,9 @@
 ---
 title: "Inroductory Spatial Analysis in R"
 author: "Marc Weber"
-output: html_document
 ---
 
-Basic data structures in R can represent spatial data. All we need is some vectors with location and attribute information.
+Basic data structures in R can represent spatial data. All we need are some vectors with location and attribute information.
 ```{r}
 cities <- c('Ashland','Corvallis','Bend','Portland','Newport')
 longitude <- c(-122.699, -123.275, -121.313, -122.670, -124.054)
