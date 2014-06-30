@@ -231,7 +231,7 @@ getClass("SpatialGrid")
 ```
 
 
-Construt a spatial object in R from a data frame with coordinate information - we'll use the built-in dataset 'quakes' with information on earthquakes off the coast of Fiji.  After creating spatial object, promote it to a spatial data frame object.
+Construct a spatial object in R from a data frame with coordinate information - we'll use the built-in dataset 'quakes' with information on earthquakes off the coast of Fiji.  After creating spatial object, promote it to a spatial data frame object.
 
 ```r
 library(sp)
@@ -315,7 +315,7 @@ proj4string(quakes_sp)
 quakes_coords <- cbind(quakes$long, quakes$lat)
 quakes_sp_df <- SpatialPointsDataFrame(quakes_coords, quakes, proj4string = llCRS, 
     match.ID = TRUE)
-summary(quakes_sp_df)  #attributes folded back in
+summary(quakes_sp_df)  # attributes folded back in
 ```
 
 ```
@@ -362,8 +362,8 @@ str(quakes_sp_df, max.level = 2)
 ```r
 # now that we've associated data with the points, we can select and plot
 # using the attributes of the data
-plot(quakes_sp_df[quakes_sp_df$mag > 5.5, ], add = TRUE, col = "Red")  #plot just higher magnitued quakes in red
-plot(quakes_sp_df[quakes_sp_df$depth > 500, ], add = TRUE, col = "Green")  #plot just dpper quakes in green
+plot(quakes_sp_df[quakes_sp_df$mag > 5.5, ], add = TRUE, col = "Red")  # plot just higher magnitued quakes in red
+plot(quakes_sp_df[quakes_sp_df$depth > 500, ], add = TRUE, col = "Green")  # plot just dpper quakes in green
 ```
 
 ![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6.png) 
