@@ -105,10 +105,11 @@ r[] <- 1:ncell(r)
 r
 plot(r)
 
-# a raster stack is a raster with multiple raster layers
-r2 <- r * 50
-r3 <- sqrt(r * 5)
-s <- stack(r, r2, r3)
-s
-plot(s)
+library(rasterVis)
+# use raster 'getData' function to grab SRTM 90 m data for Germany for demo
+alt <- getData('alt', country='DEU')
+plot(alt)
+levelplot(alt, layers=1, FUN.margin=median, contour=TRUE)
+histogram(alt)
+densityplot(alt)
 ```
