@@ -1,6 +1,8 @@
 ---
 title: "Inroductory Spatial Analysis in R"
 author: "Marc Weber"
+
+output: md_document
 ---
 
 Basic data structures in R can represent spatial data. All we need are some vectors with location and attribute information.
