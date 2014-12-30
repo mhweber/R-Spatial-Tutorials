@@ -25,7 +25,7 @@ units.
 
 ![](CAC_files/figure-markdown_strict/unnamed-chunk-1-2.png)
 
-    # Now write a function to generate intersection, union, and CAC for objects
+    # Now generate intersection and union of objects
     library(rgeos)
     # The intersection
     SP3 <- gIntersection(SP1, SP2, byid=T)
@@ -43,7 +43,7 @@ units.
     IntersectionArea = (sapply(slot(SP3, "polygons"), slot, "area"))
     UnionArea = (sapply(slot(SP4, "polygons"), slot, "area"))
 
-    # The CAC function
+    # Function to calculate CAC based on intersection and union
     CAC <- function(Intersection, Union) {  
       (Intersection / Union) * 100
     }

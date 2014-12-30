@@ -2,7 +2,7 @@
 title: "Coefficient of Areal Correspondence Function"
 author: "Marc Weber"
 date: "Tuesday, December 30, 2014"
-output: html_document
+output: md_document
 ---
 
 CAC measures degree of overlap of two areal units (see Taylor, P.J. 1977. Quantitative methods in geography, an introduction to spatial analysis: Prospect Heights, IL, Waveland Press, chap. 5, 375 p.).  Divide the intersection of two areal units by the union of same two areal units.
@@ -24,7 +24,7 @@ Ps2 = Polygons(list(P2), ID="a")
 SP2 = SpatialPolygons(list(Ps2))
 plot(SP2, border="red", lwd=2, axes=T, main='Square')
 
-# Now write a function to generate intersection, union, and CAC for objects
+# Now generate intersection and union of objects
 library(rgeos)
 # The intersection
 SP3 <- gIntersection(SP1, SP2, byid=T)
@@ -37,7 +37,7 @@ plot(SP4, border="black", lwd=2, axes=T, main='Union')
 IntersectionArea = (sapply(slot(SP3, "polygons"), slot, "area"))
 UnionArea = (sapply(slot(SP4, "polygons"), slot, "area"))
 
-# The CAC function
+# Function to calculate CAC based on intersection and union
 CAC <- function(Intersection, Union) {  
   (Intersection / Union) * 100
 }
