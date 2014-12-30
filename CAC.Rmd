@@ -2,11 +2,11 @@
 title: "Coefficient of Areal Correspondence Function"
 author: "Marc Weber"
 date: "Tuesday, December 30, 2014"
-output: md_document
+output: html_document
 ---
 
 CAC measures degree of overlap of two areal units (see Taylor, P.J. 1977. Quantitative methods in geography, an introduction to spatial analysis: Prospect Heights, IL, Waveland Press, chap. 5, 375 p.).  Divide the intersection of two areal units by the union of same two areal units.
-```{r}
+```{r, warning=FALSE, message=FALSE}
 library(sp)
 # Make a triangle
 triangle <- cbind(c(-124, -118,-121, -124),

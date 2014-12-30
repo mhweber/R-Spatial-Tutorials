@@ -5,9 +5,6 @@ the intersection of two areal units by the union of same two areal
 units.
 
     library(sp)
-
-    ## Warning: package 'sp' was built under R version 3.1.2
-
     # Make a triangle
     triangle <- cbind(c(-124, -118,-121, -124),
                     c(43, 43, 46, 43))
@@ -30,13 +27,6 @@ units.
 
     # Now write a function to generate intersection, union, and CAC for objects
     library(rgeos)
-
-    ## Warning: package 'rgeos' was built under R version 3.1.2
-
-    ## rgeos version: 0.3-8, (SVN revision 460)
-    ##  GEOS runtime version: 3.4.2-CAPI-1.8.2 r3921 
-    ##  Polygon checking: TRUE
-
     # The intersection
     SP3 <- gIntersection(SP1, SP2, byid=T)
     plot(SP3, border="black", lwd=2, axes=T, main='Intersection')
