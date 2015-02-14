@@ -83,6 +83,9 @@ plot(nor2k, axes=T, main='Peaks in Norway over 2000 meters')
 ```
 
 ## Get to know sp objects {.smaller}
+<div class="notes">
+- Summary method with sp akin to summary on data frame, but provides some useful overview information on a spatial object like bounding box, coordinate reference system, synopsis of attributes in data table
+</div>
 ```{r, warning=FALSE, message=FALSE, comment=NA}
 library(rgdal)
 data(nor2k)
@@ -108,6 +111,10 @@ plot(r, main='Raster with 100 cells')
 ```
 
 ## Making data spatial {.smaller .build}
+<div class="notes">
+- Let's say we have table in an R dataset or a csv that has coordinate information - we can 'promote' to a spatial object in sp
+- In this case, we're just looking at a data frame of US cities in the maps package
+</div>
 ```{r, results='asis', out.width= '250px', message=FALSE, warning=FALSE, comment=NA}
 library(maps);library(sp);require(knitr)
 data(us.cities)
@@ -117,7 +124,7 @@ class(us.cities) # simple data frame
 
 ## Making data spatial {.smaller .build}
 ### Promote a data frame with coordinate to an sp SpatialPointsDataFrame
-```{r, results='asis', out.width= '200px', message=FALSE, warning=FALSE, comment=NA,fig.align='center'}
+```{r, results='asis', out.width= '200px', message=FALSE, warning=FALSE, comment=NA, fig.align='center'}
 library(maps);library(sp)
 data(us.cities)
 coordinates(us.cities) <- c("long", "lat") 
@@ -127,6 +134,9 @@ plot(us.cities, pch = 20, col = 'forestgreen', axes=T,
 ```
 
 ## Maps package provides convenient stock maps {.smaller .columns-2}
+<div class="notes">
+- Handy to use existing administrative units in R or from online databases when mapping in R
+</div>
 ```{r, message=FALSE, warning=FALSE, out.width= '275px'}
 library(maps)
 par(mfrow=c(1,1))
@@ -185,6 +195,9 @@ writeRaster(r, 'clay_smaller.tif',format='GTiff')
 ```
 
 ## Understanding slot structure { .build}
+<div class="notes">
+- Knowing how information is stored in slots, we can pull out area in a couple different ways from a spatial polygons data frame, in this case Hydrologic Units in the state of Oregon
+</div>
 ```{r, eval=TRUE, echo=TRUE, comment=NA, message=FALSE, warning=FALSE}
 require(sp);require(rgeos);load("K:/GitProjects/RUserWebinar/Data.RData")
 # A spatial PolygonsDataFrame has 5 slots:
@@ -210,12 +223,16 @@ HUCs@polygons[[1]]@Polygons[[1]]@area
 ```
 
 ## Getting areas of polygons {.smaller .columns-2 .build}
-```{r, eval=TRUE, echo=TRUE, comment=NA, out.width= '200px', message=FALSE, warning=FALSE}
+```{r, eval=TRUE, echo=TRUE, comment=NA, out.width= '400px', message=FALSE, warning=FALSE, fig.align='center'}
 require(sp);load("K:/GitProjects/RUserWebinar/Data.RData")
 plot(HUCs, axes=T, main='HUCs in Oregon')
-# just plot bigger HUCs
 ```
-```{r, eval=TRUE, echo=TRUE, comment=NA, out.width= '200px', message=FALSE, warning=FALSE}
+## Getting areas of polygons {.smaller .columns-2 .build}
+<div class="notes">
+- Here we leverage the area slot of the polgons slot to write a simple function to generate a percent of total area for each HUC in our spatial polygons data frame
+</div>
+- Highlight larger HUCs using Area function
+```{r, eval=TRUE, echo=TRUE, comment=NA, out.width= '400px', message=FALSE, warning=FALSE}
 require(sp);load("K:/GitProjects/RUserWebinar/Data.RData")
 plot(HUCs, axes=T, main='HUCs in Oregon')
 # Function to calculate percent of area
@@ -232,6 +249,8 @@ plot(HUCs[AreaPercent(HUCs) > 1,], add=T,
 
 ## Spatial Operations on vector data {.build .smaller .columns-2}
 <div class="notes">
+- Now we'lll step through examples of spatial operations on vector data
+- Here we're looking at a spatial points data frame of stream gages in Oregon
 - First step in any spatial analysis should ALWAYS be setting everything to same CRS
 - show code for how I found EPSG code for Oregon Lambert projection!
 - Here we use ggplot to plot our gages and color the points by log of flow
@@ -248,8 +267,12 @@ ggplot(gages@data, aes(LON_SITE, LAT_SITE)) +
 ```
 
 ## Spatial Operations on vector data {.build .smaller .columns-2}
-### Spatial Indexing
-```{r, echo=TRUE, message=FALSE, warning=FALSE, out.width= '200px'}
+### Spatial Indexing - Select just gages within certain HUCs
+<div class="notes">
+- Here we can see we've subset our HUCs by those less than a certain longitude and we've plotted all our stream gages over that - our gages extend beyond the bounds of our subset HUCs
+- It's as simple as an index operation to subset the gages to just those within our new HUCs
+</div>
+```{r, echo=TRUE, message=FALSE, warning=FALSE, out.width= '200px', fig.align='right'}
 load("K:/GitProjects/RUserWebinar/Data.RData")
 gages_proj <- spTransform(gages, CRS('+init=epsg:2991'))
 HUCs_proj <- spTransform(HUCs, CRS('+init=epsg:2991'))
@@ -260,6 +283,9 @@ plot(gages_proj, axes=T, col='blue')
 plot(HUCs_west, add=T)
 ```
 
+## Spatial Operations on vector data {.build .smaller .columns-2}
+### Spatial Indexing - Select just gages within certain HUCs
+<div class="notes">
 - Just index to subset spatially
 ```{r, echo=TRUE, message=FALSE, warning=FALSE, out.width= '300px'}
 load("K:/GitProjects/RUserWebinar/Data.RData")
@@ -268,100 +294,312 @@ plot(HUCs_west, axes=T)
 plot(gages_west, add=T, col='blue')
 ```
 
-## Spatial operations on vector data {.build}
+## Spatial Operations on vector data
+### Overlay and Aggregation - What HUCs are gages located in?
+<div class="notes">
+- Here we roll together couple simple steps in a function to update our gages data slot with the ID of the HUC each gage is within
+</div>
+```{r, echo=TRUE, message=FALSE, warning=FALSE, comment=NA}
+load("K:/GitProjects/RUserWebinar/Data.RData")
+OverUpdate <- function(points, polys) {
+  pointpoly <- over(points, polys)
+  points@data <- data.frame(points@data, pointpoly)
+}
+gages_proj@data <- OverUpdate(gages_proj, HUCs_proj)
+head(gages_proj@data[,c(3,12)])
+```
+
+## Spatial Operations on vector data {.smaller}
+### Overlay and Aggregation - What is mean flow of gages within each HUC?
+<div class="notes">
+- Here rather than identifying which HUC each gage goes with, we can summarize some attribue of gages for all the gages within each HUCs
+</div>
+```{r, echo=TRUE, message=FALSE, warning=FALSE, comment=NA}
+load("K:/GitProjects/RUserWebinar/Data.RData")
+HUCs_proj$StreamFlow <- over(HUCs_proj,gages_proj[8],fn = mean)
+head(HUCs_proj@data[!is.na(HUCs_proj@data$StreamFlow),])
+# Or median..
+HUCs_proj$StreamFlow <- over(HUCs_proj,gages_proj[8],fn = sum)
+head(HUCs_proj@data[!is.na(HUCs_proj@data$StreamFlow),])
+```
+
+## Attribute joining {.smaller .columns-2}
+<div class="notes">
+- Often we want to combine spatial data with attributes from a table
+- Here we'll read in a csv file of cities with population information
+- Next we'll join to our data slot of gages spatial points data frame in a way that does not scramble the ordering between data and spatial slots
+</div>
+```{r, echo=TRUE, message=FALSE, warning=FALSE, comment=NA}
+require(plyr);load("K:/GitProjects/RUserWebinar/Data.RData")
+head(cities[,c(3:4, 7:8)])
+# We can use match or join to connect to our spatial gages 
+gages$POP2007 <- cities$POP2007[match(gages$NearCity, cities$NAME)]
+# OR set a common name field and use join from plyr
+names(gages)[7] <- "NAME"
+gages@data <- join(gages@data, cities)
+head(gages@data[,c(3,7,17:19)])
+```
+
+## Spatial operations on vector data {.build .smaller .columns-2}
 ### Dissolving
-```{r, echo=FALSE, message=FALSE, warning=FALSE, out.width= '400px'}
+<div class="notes">
+-  Some of the common tasks we want to do in a GIS like dissolving, buffering, unioning, intersecting we can do in R with the rgeos package
+- Here we use the cut function wiht quanitles to generate four 'longitude' bins
+- We then apply those bins as a parameter in the rgeos gUnaryUnion function to dissolve our HUCs on four classes or longitude and generate four larger units out of the HUCs spatail polygons data frame
+</div>
+```{r, echo=TRUE, message=FALSE, warning=FALSE, out.width= '300px', fig.align='center'}
 library(rgeos); library(rgdal)
 # Use gUnaryUnion from rgeos to dissolve polygons
 # http://www.maths.lancs.ac.uk/~rowlings/Teaching/Sheffield2013/spatialops.html
 #create four bins of longitude values using coordinate data from HUCs
 lps <- coordinates(HUCs)
-IDFourBins <- cut(lps[,1], quantile(lps[,1]), include.lowest=TRUE)
+IDFourBins <- cut(lps[,1], quantile(lps[,1]), 
+                  include.lowest=TRUE)
 regions = gUnaryUnion(HUCs,IDFourBins)
 regions = SpatialPolygonsDataFrame(regions,
-                                   data.frame(regions = c('Coastal',
-                                                          'Mountains',
-                                                          'High Desert',
-                                                          'Eastern')),
-                                              match.ID = FALSE)
+                    data.frame(regions = c('Coastal',
+                    'Mountains','High Desert','Eastern')),
+                    match.ID = FALSE)
 plot(regions, axes=T)
-text(coordinates(regions), label = regions$regions, cex=.5)
+text(coordinates(regions), 
+     label = regions$regions, cex=.8)
 ```
 
-
-## Spatial Operations on vector data
-### Overlay and Aggregation
-```{r, echo=TRUE, message=FALSE, , eval=FALSE,warning=FALSE}
-load("K:/GitProjects/RUserWebinar/Data.RData")
-# What regions are stream gages located in?
-# We can use sp 'over' function to answer
-# remember, must be same CRS!!!
-proj4string()
-gageHUCs <- over(gages,HUCs) # same as gages %over% HUCs
-
-# simple function for updating our gages spatial data frame with
-# result from over
-OverUpdate <- function(points, polys) {
-  pointpoly <- over(points, polys)
-  points@data <- data.frame(points@data, pointpoly)
-}
-
-gages <- OverUpdate(gages, HUCs)
-} 
-head(gages@data)
+## Working with rasters {.build .smaller .columns-2}
+<div class="notes">
+-  Read in a raster of STATSGO clay, clip, get values at points
+- raster package handles spatial data differently
+- syntax to extract grid values at points inverted from over in sp
+</div>
+```{r, echo=TRUE, message=FALSE, warning=FALSE, out.width= '400px', comment=NA}
+require(raster)
+clay <- raster('clay.tif')
+inMemory(clay)
+cellStats(clay, min); cellStats(clay, max)
+projection(clay)
+plot(clay)
 ```
 
-## Attribute joining
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-load("K:/GitProjects/RUserWebinar/Data.RData")
-
-# http://cran.r-project.org/doc/contrib/intro-spatial-rl.pdf
+## Working with rasters {.build .smaller .columns-2}
+<div class="notes">
+-  Read in a raster of STATSGO clay, clip, get values at points
+- raster package handles spatial data differently
+- syntax to extract grid values at points inverted from over in sp
+</div>
+```{r, echo=TRUE, message=FALSE, warning=FALSE, out.width= '400px', comment=NA}
+require(raster)
+clay <- raster('clay.tif')
+clay_OR <- crop(clay, extent(-2261000, -1594944, 2348115, 2850963))
+plot(clay_OR)
+gages <- spTransform(gages, CRS(projection(clay)))
+gages$clay = extract(clay,gages)
+head(gages@data[,c(3,12)])
 ```
 
-## Spdep
-```{r, echo = FALSE, message=FALSE, warning=FALSE, eval=FALSE}
-library(rgdal)
-OR_HUCs <- readOGR('L:/Public/mweber/ORD_Geospatial_R','OR_HUC8')
-require(spdep)
-adj = poly2nb(OR_HUCs)
-summary(adj)
+## Visualizing data {.build .smaller .columns-2}
+### RasterVis
+```{r, echo=TRUE, warning=FALSE, message=FALSE,out.width= '500px'}
+library(rasterVis)
+alt <- getData('worldclim', var='alt', res=2.5)
+usa1 <- getData('GADM', country='USA', level=1)
+oregon <- usa1[usa1$NAME_1 == 'Oregon',]
+alt <- crop(alt, extent(oregon) + 0.5)
+alt <- mask(alt, oregon)
+levelplot(alt, par.settings=GrTheme)
 ```
 
-## Demo knitr to run R and Python code snippets
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-library(rgdal)
-OR_HUCs <- readOGR('L:/Public/mweber/ORD_Geospatial_R','OR_HUC8')
-plot(OR_HUCs, axes=T)
-```
-
-
-## Micromap Example like Brazil Murder Rate in SA Paper?
-
-## Visualization - my runs perhaps? 
-```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
-# http://spatial.ly/2012/02/great-maps-ggplot2/
-```
-
-## This type of visualizsation?
+## Visualizing data
+### PlotGoogleMaps
+<div class="notes">
+- This package was new to me until last week and was pointed out by Mike Papenfus here at our lab
+- Allows you to map your points, lines and polygons straight onto Google Maps, and further, allows you to do interactive pop-ups of your spatial data overlaid on Google Maps
+</div>
 ```{r, echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
-breaks = quantile(volcano, seq(0, 1, length.out=256))
-cols = colorRampPalette(c("#55FFFF", "grey10"))(255)
-par(mfrow = c(1, 2))
-image(volcano, col=cols, axes=F, asp=T)
-title(main = "Linear")
-image(volcano, col=cols, breaks=breaks, axes=F, asp=T)
-title(main = "Quantile")
+require(plotGoogleMaps)
+HUCs <- spTransform(HUCs, CRS('+init=epsg:28992'))
+map <- plotGoogleMaps(HUCs, filename='RGoogleMapsExample.htm')
+```
+<div class="centered">
+<img src="PlotGoogleMapsExample.png" alt="Roadmap" style="width: 400px;"/>
+</div>
+
+## Visualizing data using ggmap
+<div class="notes">
+- Unfortunately using stamen maps from ggmap is broken at the moment so can't use
+- Fix involves editing function in package
+</div>
+```{r, echo=TRUE, warning=FALSE, message=FALSE,out.width= '500px', fig.align='center'}
+library(ggmap)
+mymap <- get_map(location = "Corvallis, OR", source="google", maptype="terrain",zoom = 12)
+ggmap(mymap, extent="device")
 ```
 
-## RGoogleMaps
-```{r, echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
-```
+## Visualizing data
+### Taking it a step further with ggmap
+<div class="notes">
+- You can plot points, lines and polygons on ggmap for nice visualizations
+- Here's an example of arranging several plots based on gpx coordinates from my watch from a weekend run with ggplot and ggmap
+- Just an example of the kind of melding of data and maps you can do in R with ggplot2 and ggmap
+</div>
+```{r, eval=FALSE, echo=FALSE}
+# Modified slightly From R-blggers http://www.r-bloggers.com/stay-on-track-plotting-gps-tracks-with-r/
 
-## Point in poly example as in this example?
-```{r, echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
-# http://www.maths.lancs.ac.uk/~rowlings/Teaching/Sheffield2013/spatialops.html
-```
+library(XML)
+library(OpenStreetMap)
+library(lubridate)
+library(gridExtra)
+# a function that shifts vectors conviniently
+  
+  shift.vec <- function (vec, shift) {
+    if(length(vec) <= abs(shift)) {
+      rep(NA ,length(vec))
+    }else{
+      if (shift >= 0) {
+        c(rep(NA, shift), vec[1:(length(vec)-shift)]) }
+      else {
+        c(vec[(abs(shift)+1):length(vec)], rep(NA, abs(shift))) } } }
 
+# Now, we're reading in the GPX file. If you want help on parsing XML files, check out this (German) tutorial I made a while ago.
+
+# Parse the GPX file
+pfile <- htmlTreeParse("activity_659032443.gpx",error = function (...) {}, useInternalNodes = T)
+# Get all elevations, times and coordinates via the respective xpath
+elevations <- as.numeric(xpathSApply(pfile, path = "//trkpt/ele", xmlValue))
+times <- xpathSApply(pfile, path = "//trkpt/time", xmlValue)
+coords <- xpathSApply(pfile, path = "//trkpt", xmlAttrs)
+# Extract latitude and longitude from the coordinates
+lats <- as.numeric(coords["lat",])
+lons <- as.numeric(coords["lon",])
+# Put everything in a dataframe and get rid of old variables
+geodf <- data.frame(lat = lats, lon = lons, ele = elevations, time = times)
+rm(list=c("elevations", "lats", "lons", "pfile", "times", "coords"))
+head(geodf)
+
+# We already have nice dataframe now with all the information available in the GPX file for each position. 
+# Each position is defined by the latitude and longitude and we also have the elevation (altitude) available. 
+# Note, that the altitude ist quite noisy with GPS, we will see this in a minute.
+
+# Now, let's calculate the distances between successive positions and the respective speed in this segment.
+
+# Shift vectors for lat and lon so that each row also contains the next position.
+geodf$lat.p1 <- shift.vec(geodf$lat, -1)
+geodf$lon.p1 <- shift.vec(geodf$lon, -1)
+# Calculate distances (in metres) using the function pointDistance from the 'raster' package.
+# Parameter 'lonlat' has to be TRUE!
+geodf$dist.to.prev <- apply(geodf, 1, FUN = function (row) {
+  pointDistance(c(as.numeric(row["lat.p1"]),
+                  as.numeric(row["lon.p1"])),
+                c(as.numeric(row["lat"]), as.numeric(row["lon"])),
+                lonlat = T)
+})
+# Transform the column 'time' so that R knows how to interpret it.
+geodf$time <- strptime(geodf$time, format = "%Y-%m-%dT%H:%M:%OS")
+# Shift the time vector, too.
+geodf$time.p1 <- shift.vec(geodf$time, -1)
+# Shift the elevation vector, too.
+geodf$ele.p1 <- shift.vec(geodf$ele, -10)
+# Calculate the number of seconds between two positions.
+geodf$time.diff.to.prev <- as.numeric(difftime(geodf$time.p1, geodf$time))
+# Calculate elevation difference between two positions.
+geodf$elev.diff.to.prev <- as.numeric(geodf$ele.p1 - geodf$ele)
+# Calculate metres per seconds, kilometres per hour and two LOWESS smoothers to get rid of some noise.
+geodf$speed.m.per.sec <- geodf$dist.to.prev / geodf$time.diff.to.prev
+geodf$speed.km.per.h <- geodf$speed.m.per.sec * 3.6
+geodf$speed.km.per.h <- ifelse(is.na(geodf$speed.km.per.h), 0, geodf$speed.km.per.h)
+geodf$pace <- geodf$speed.km.per.h * 96.56064
+geodf$lowess.speed <- lowess(geodf$speed.km.per.h, f = 0.2)$y
+geodf$lowess.ele <- lowess(geodf$ele, f = 0.2)$y
+geodf$pace <- 96.56064 /geodf$speed.km.per.h
+geodf$slope <- geodf$elev.diff.to.prev / geodf$dist.to.prev
+geodf$pace[geodf$pace==Inf] <- 0
+geodf <- na.omit(geodf)
+head(geodf)
+# Plot the track without any map, the shape of the track is already visible.
+basic_route <-ggplot(geodf, aes(x=lon, y=lat)) + geom_point() +
+  xlab("Longitude") + ylab("Lattitude") + ggtitle("Basic Route of Run")
+
+# Plot elevations and smoother
+elevation <- ggplot(geodf, aes(x=time, y=ele)) +
+  geom_point() + geom_line() + ylab("Elevation in Meters") +
+  xlab("Time") + geom_smooth() + ggtitle('Elevation During Run')
+
+
+# Plot pace
+pace <- ggplot(geodf, aes(x=time, y=pace)) +
+  geom_point() + geom_line() + ylab("Minute/Mile Pace") +
+  xlab("Time") + geom_smooth() + ylim(6,10) + ggtitle('Pace During Run')
+
+
+# We will now use the OpenStreetMap package to get some maps from the internet and use them as a background for the track we just converted. There are several blocks for each map type. Check the comments in the first block what the different calls do.
+
+# First, we need to get the specific map. The 'type' argument controls which type of map we get.
+
+map <- openmap(as.numeric(c(max(geodf$lat), min(geodf$lon))),
+as.numeric(c(min(geodf$lat), max(geodf$lon))), type = "osm")
+
+# This next step is important and it took me a while to figure this out. 
+# We need to convert the maps we got with the function openmap() to a projection that fits our longitude-latitude format of positions. 
+# This will distort the maps in the plots a little. But we need this step because the track has to fit the map!
+
+transmap <- openproj(map, projection = "+proj=longlat")
+
+# Now for plotting...
+png("map1.png", width = 1000, height = 800, res = 100)
+par(mar = rep(0,4))
+plot(transmap, raster=T)
+lines(geodf$lon, geodf$lat, type = "l", col = scales::alpha("red", .5), lwd = 4)
+dev.off()
+
+library(ggplot2)
+data(seals)
+head(seals)
+head(geodf)
+p <- ggplot(geodf, aes(x = lon, y = lat))
+p + geom_segment(aes(xend = lon.p1, yend = lat.p1))
+
+
+library(ggmap)
+library(jpeg)
+library(plyr) 
+# pass bounding box with extent of gpx tracks
+myLocation <- c(lon=-123.240, lat=44.663)
+myLocation <- c(-123.26, 44.650, -123.220, 44.675)
+myMap <- get_map(location=myLocation,maptype = "terrain",source = "stamen")
+
+mp <- ggmap(myMap, extent="panel", maprange=FALSE) + 
+  geom_segment(data=geodf, mapping=aes(x=lon, y=lat, xend=lon.p1, yend=lat.p1), size=2, color="blue")
+mp  
+
+grid.arrange(basic_route, elevation, pace, mp)
+```
+<div class="centered">
+<img src="SundayRun.png" alt="Roadmap" style="width: 500px;"/>
+</div>
+
+## Some things still better in python { .smaller}
+### R Markdown + knitr package
+<div class="notes">
+- R Markdown is a format that allows easy creation of dynamic documents, presentations, and reports from R. 
+- Combines markdown syntax with embedded R code chunks that are run so their output can be included in the final document. 
+- R Markdown documents are fully reproducible (they can be automatically regenerated whenever underlying R code or data changes).
+- knitr package, used with RStudio, basically extends and makes easy creating dynamic documents using R markdown
+- Great thing with knitr is that you can actuallyl fold in programming languages other than R into your R markdown
+- here I've got a code that will run an R chunk, and then run a python chunk
+- I combine all my R and python work into one R document this way, that I can then generate an html, Word, or pdf document or slide show and make work reproducible
+</div>
+<div class="centered">
+<img src="KnitrRPython.png" alt="Roadmap" style="width: 600px;"/>
+</div>
+
+## Combining R and Python - the best of both worlds { .smaller}
+### R Markdown + knitr package
+<div class="notes">
+- Here we can see output generated in my Markdown document when I 'knit' the R Markdown in the previous document.  
+- Show in RStudio
+</div>
+<div class="centered">
+<img src="levelplotElev.png" alt="Roadmap" style="width: 650px;"/>
+</div>
 ## Resources
 - https://github.com/Robinlovelace/Creating-maps-in-R
 - https://github.com/Pakillo/R-GIS-tutorial/blob/master/R-GIS_tutorial.md
