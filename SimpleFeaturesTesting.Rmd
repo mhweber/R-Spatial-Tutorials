@@ -1,0 +1,78 @@
+---
+title: "Simple Features Testing"
+author: "Marc Weber"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    theme: yeti
+    highlighted: default 
+    toc: yes
+    keep_md: true 
+---
+
+## Load and look at basics of simple features package
+```{r, cache=TRUE}
+library(devtools)
+# install_github("edzer/sfr")
+library(sf)
+nc <- st_read(system.file("shape/nc.shp", package="sf"))
+class(nc)
+attr(nc, "sf_column")
+methods(class = "sf")
+head(nc)
+```
+
+### Download Oregon counties from Oregon Explorer data and load into simple features object
+```{r, cache=TRUE, fig.keep='all', fig.show='hold', error=FALSE, message=FALSE}
+library(sf)
+# Get the url for zip file, download and unzip
+# counties_zip <- 'http://oe.oregonexplorer.info/ExternalContent/SpatialDataforDownload/orcnty2015.zip'
+# download.file(counties_zip, 'C:/users/mweber/temp/OR_counties.zip')
+# unzip('C:/users/mweber/temp/OR_counties.zip')
+
+# Now read into a simple features object in R
+counties <- st_read('orcntypoly.shp')
+# simple plot with base R
+plot(counties[1], main='Oregon Counties', axes=TRUE)
+# the data frame
+head(counties[,1:5])
+```
+
+
+### Download Oregon cities from Oregon Explorer data and load into simple features object
+```{r, cache=TRUE, fig.keep='all', fig.show='hold', error=FALSE, message=FALSE}
+# cities_zip <- 'http://navigator.state.or.us/sdl/data/shapefile/m2/cities.zip'
+# download.file(cities_zip, 'C:/users/mweber/temp/OR_cities.zip')
+# unzip('C:/users/mweber/temp/OR_cities.zip')
+cities <- st_read("cities.shp")
+plot(cities[1])
+```
+
+### Construct a spatial object in R from a data frame with coordinate information - we'll use the built-in dataset 'quakes' with information on earthquakes off the coast of Fiji.  Construct spatial points sp, spatial points data frame, and then promote it to a simple features object.
+```{r, cache=TRUE, fig.keep='all', fig.show='hold', error=FALSE, message=FALSE}
+library(sp)
+data(quakes)
+head(quakes)
+class(quakes)
+# Data frames consist of rows of observations on columns of values for variables of interest. Create the coordinate reference system to use
+llCRS <- CRS("+proj=longlat +datum=NAD83")
+# now stitch together the data frame coordinate fields and the  
+# projection string to createa SpatialPoints object
+quakes_sp <- SpatialPoints(quakes[, c('long', 'lat')], proj4string = llCRS)
+# Summary method gives a description of the spatial object in R. Summary works on pretty much all objects in R - for spatial data, gives us basic information about the projection, coordinates, and data for an sp object if it's a spatial data frame object.
+summary(quakes_sp)
+
+# we can use methods in sp library to extract certain information from objects
+bbox(quakes_sp)
+proj4string(quakes_sp)
+
+# now promote the SpatialPoints to a SpatialPointsDataFrame
+quakes_coords <- cbind(quakes$long, quakes$lat)
+quakes_sp_df <- SpatialPointsDataFrame(quakes_coords, quakes, proj4string=llCRS, match.ID=TRUE)
+summary(quakes_sp_df) # attributes folded back in
+str(quakes_sp_df, max.level=2)
+
+# Convert to simple features
+quakes_sf <- st_as_sf(quakes_sp_df)
+plot(quakes_sp_df[,3],cex=log(quakes_sf$depth/100), pch=21, bg=24, lwd=.4, axes=T) 
+```
