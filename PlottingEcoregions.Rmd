@@ -1,0 +1,46 @@
+---
+title: "Plotting Ecoregions"
+author: "Marc Weber"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    theme: yeti
+    highlighted: default 
+    toc: yes
+    keep_md: true 
+---
+
+## Load in same Utah ecoregions shapefile Hadley uses here [https://github.com/tidyverse/ggplot2/wiki/plotting-polygon-shapefiles](https://github.com/tidyverse/ggplot2/wiki/plotting-polygon-shapefiles)
+
+```{r, error=FALSE, message=FALSE}
+library(rgdal)
+# Get the url for zip file, download and unzip
+eco_zip <- 'http://archive.epa.gov/nheerl/arm/web/zip/ecoregion_design.zip'
+download.file(eco_zip, 'C:/users/mweber/temp/ecoregion_design.zip')
+setwd('C:/users/mweber/temp')
+unzip('C:/users/mweber/temp/ecoregion_design.zip')
+
+# Now read into an sp object in R
+utah = readOGR(dsn="C:/users/mweber/temp", layer="eco_l3_ut")
+```
+
+### Read shapefile into map table in micromap package
+```{r, error=FALSE, message=FALSE}
+require(micromap)
+require("ggplot2")
+require("plyr")
+utah@data$id = rownames(utah@data)
+eco_table <- create_map_table(utah, 'id')
+head(eco_table)
+names(eco_table)[1] <- 'id'
+utah.df = join(eco_table, utah@data, by="id")
+```
+
+### Plot with ggplot
+```{r, fig.keep='all', fig.show='hold', error=FALSE, message=FALSE}
+ggplot(utah.df) + 
+  aes(coordsx,coordsy,group=poly,fill=LEVEL3_NAM) + 
+  geom_polygon() +
+  geom_path(color="white") +
+  coord_equal()  
+```

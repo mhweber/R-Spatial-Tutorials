@@ -19,7 +19,7 @@ nc <- st_read(system.file("shape/nc.shp", package="sf"))
 class(nc)
 attr(nc, "sf_column")
 methods(class = "sf")
-head(nc)
+# head(nc)
 ```
 
 ### Download Oregon counties from Oregon Explorer data and load into simple features object
@@ -35,7 +35,7 @@ counties <- st_read('orcntypoly.shp')
 # simple plot with base R
 plot(counties[1], main='Oregon Counties', axes=TRUE)
 # the data frame
-head(counties[,1:5])
+# head(counties[,1:5])
 ```
 
 
