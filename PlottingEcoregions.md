@@ -1,6 +1,6 @@
 # Plotting Ecoregions
 Marc Weber  
-`r format(Sys.time(), '%d %B, %Y')`  
+March 3, 2017  
 
 ## Load in same Utah ecoregions shapefile Hadley uses here [https://github.com/tidyverse/ggplot2/wiki/plotting-polygon-shapefiles](https://github.com/tidyverse/ggplot2/wiki/plotting-polygon-shapefiles)
 
